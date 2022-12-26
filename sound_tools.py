@@ -114,7 +114,7 @@ def add_512_features():
     print("f: ", len(female))
 
     json_obj = {"males": male, "females": female}
-    with open('m_f_audio.json', 'w') as outfile:
+    with open('data/m_f_audio.json', 'w') as outfile:
         json.dump(json_obj, outfile)
 
 if __name__ == '__main__':
