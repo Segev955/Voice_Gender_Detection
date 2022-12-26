@@ -67,9 +67,9 @@ def add_512_features():
     female_files = listdir(FEMALES_PATH)
     random.shuffle(male_files)
     random.shuffle(female_files)
-    min_amount = 1000
-    boys = []
-    girls = []
+    min_amount = 99999
+    male = []
+    female = []
     count = 0
     for file in male_files:
         if file[-3:] == 'wav':
@@ -80,7 +80,7 @@ def add_512_features():
             embeddings = classifier.encode_batch(signal)
             embeddings = embeddings.detach().cpu().numpy()
             embedding = embeddings[0][0]
-            boys.append(features.tolist() + embedding.tolist())
+            male.append(features.tolist() + embedding.tolist())
             print(file)
             sound = AudioSegment.from_wav(f"{MALES_PATH}/{file}")
             sound.export(f"{MALES_OUT_PATH}/{file}", format='wav')
@@ -96,24 +96,24 @@ def add_512_features():
             embeddings = classifier.encode_batch(signal)
             embeddings = embeddings.detach().cpu().numpy()
             embedding = embeddings[0][0]
-            girls.append(features.tolist() + embedding.tolist())
+            female.append(features.tolist() + embedding.tolist())
             sound = AudioSegment.from_wav(f"{FEMALES_PATH}/{file}")
             sound.export(f"{FEMALES_OUT_PATH}/{file}", format='wav')
             count += 1
-    mData = np.array(boys)
-    fData = np.array(girls)
-    # Perform PCA
-    pca = PCA(n_components=1)
-    pca.fit(mData)
-    transformed_data_males = pca.transform(mData)
+    # mData = np.array(boys)
+    # fData = np.array(girls)
+    # # Perform PCA
+    # pca = PCA(n_components=1)
+    # pca.fit(mData)
+    # transformed_data_males = pca.transform(mData)
+    #
+    # pca.fit(fData)
+    # transformed_data_females = pca.transform(fData)
 
-    pca.fit(fData)
-    transformed_data_females = pca.transform(fData)
+    print("m: ", len(male))
+    print("f: ", len(female))
 
-    print("m: ", len(transformed_data_males))
-    print("f: ", len(transformed_data_females))
-
-    json_obj = {"males": transformed_data_males.tolist(), "females": transformed_data_females.tolist()}
+    json_obj = {"males": male, "females": female}
     with open('m_f_audio.json', 'w') as outfile:
         json.dump(json_obj, outfile)
 
