@@ -1,4 +1,8 @@
 #Using functions from https://github.com/dvirGev/gender-recognition-by-voice/blob/main/test.py
+import msvcrt
+import sys
+import threading
+
 import pyaudio
 import os
 import wave
@@ -59,6 +63,7 @@ def add_silence(snd_data, seconds):
     r.extend([0 for i in range(int(seconds*RATE))])
     return r
 
+
 def record():
     """
     Record a word or words from the microphone and
@@ -78,23 +83,39 @@ def record():
 
     r = array('h')
 
+
+    noTalking=0
+    isStarted=0
     while 1:
+        if not snd_started:
+            noTalking+=1
+        else:
+            isStarted += 1
+        if noTalking>0 and noTalking%20 == 0:
+            print("Start talking!")
+        if isStarted==1:
+            print("Record start", end="")
+        if snd_started:
+            print("-", end="")
         # little endian, signed short
         snd_data = array('h', stream.read(CHUNK_SIZE))
         if byteorder == 'big':
             snd_data.byteswap()
         r.extend(snd_data)
-
         silent = is_silent(snd_data)
-
         if silent and snd_started:
             num_silent += 1
         elif not silent and not snd_started:
             snd_started = True
 
-        if snd_started and num_silent > SILENCE:
+        if noTalking ==100 or (snd_started and num_silent > SILENCE):
             break
 
+
+    if noTalking ==100:
+        print("Record canceled.")
+        return False
+    print("Record finished")
     sample_width = p.get_sample_size(FORMAT)
     stream.stop_stream()
     stream.close()
@@ -106,12 +127,14 @@ def record():
     return sample_width, r
 def record_to_file(path):
     "Records from the microphone and outputs the resulting data to 'path'"
-    sample_width, data = record()
-    data = pack('<' + ('h'*len(data)), *data)
+    r =record()
+    if r:
+        sample_width, data = r
+        data = pack('<' + ('h'*len(data)), *data)
 
-    wf = wave.open(path, 'wb')
-    wf.setnchannels(1)
-    wf.setsampwidth(sample_width)
-    wf.setframerate(RATE)
-    wf.writeframes(data)
-    wf.close()
+        wf = wave.open(path, 'wb')
+        wf.setnchannels(1)
+        wf.setsampwidth(sample_width)
+        wf.setframerate(RATE)
+        wf.writeframes(data)
+        wf.close()
