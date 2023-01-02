@@ -61,31 +61,12 @@ Fingerprint audio models in a streaming folder.
 '''
 import sys
 
-import librosa, pickle, getpass, time, uuid
+import librosa, pickle, uuid
 from pydub import AudioSegment
-import speech_recognition as sr
-import os, nltk, random, json
-from nltk import word_tokenize
-from nltk.classify import apply_features, SklearnClassifier, maxent
-from sklearn.naive_bayes import BernoulliNB, MultinomialNB
-from sklearn.svm import SVC
-from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.linear_model import SGDClassifier, LogisticRegression
-from sklearn.model_selection import cross_val_score
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import VotingClassifier
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import cross_val_score
-from sklearn import preprocessing
-from sklearn import svm
-from sklearn import metrics
-from textblob import TextBlob
+import os, json
 import numpy as np
+
+from dvir_record_funcs import record_to_file
 
 cur_dir=os.getcwd()+'/load_dir'
 model_dir=os.getcwd()+'/models'
@@ -219,6 +200,11 @@ def featurize(wavfile):
     features=np.append(featurize2(wavfile),audio_time_features(wavfile))
     return features
 
+def check_name(name):
+    for c in name:
+        if not c.isalpha() and not c.isalnum():
+            return False
+    return True
 def convert(file):
     print("//////////////////////////////")
     # print(file[-4:])
@@ -244,6 +230,7 @@ for i in range(len(listdir)):
 count=0
 errorcount=0
 
+
 try:
     os.chdir(load_dir)
 except:
@@ -251,6 +238,21 @@ except:
     os.chdir(load_dir)
 
 listdir=os.listdir()
+
+ans =input('Do you want to add a record to load_dir? (yes/no)')
+while ans!='no':
+    filename=input("Input name for the record (letters and numbers only)")
+    while not check_name(filename):
+        filename = input("Invalid name!\nInput name again (letters and numbers only)")
+    while filename+ '.wav' in listdir:
+        filename = input("Name exist in load_dir!\nInput name again (letters and numbers only)")
+    filename += '.wav'
+    print(f"{filename} record started...")
+    # record the file (start talking)
+    record_to_file(filename)
+    listdir = os.listdir()
+    ans = input('do you want to add more record to load_dir? (yes/no)')
+
 print(os.getcwd())
 for i in range(len(listdir)):
     try:
@@ -263,10 +265,10 @@ for i in range(len(listdir)):
             else:
                 filename=listdir[i]
 
-            print(filename)
+
 
             if filename[0:-4]+'.json' not in listdir:
-
+                print(f"\nResults for {filename}:")
                 features=featurize(filename)
                 features=features.reshape(1,-1)
 
@@ -317,8 +319,9 @@ for i in range(len(listdir)):
                     }
                 json.dump(data,jsonfile)
                 jsonfile.close()
-
-            count=count+1
+            else:
+                print(f"{filename} has already check.")
+            count = count + 1
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
