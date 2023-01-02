@@ -89,33 +89,37 @@ def record():
     while 1:
         if not snd_started:
             noTalking+=1
+            if noTalking > 0 and noTalking % 20 == 0:
+                print("Start talking!")
         else:
             isStarted += 1
-        if noTalking>0 and noTalking%20 == 0:
-            print("Start talking!")
-        if isStarted==1:
-            print("Record start", end="")
-        if snd_started:
-            print("-", end="")
+            if isStarted == 1:
+                print("Record start", end="")
+
         # little endian, signed short
         snd_data = array('h', stream.read(CHUNK_SIZE))
         if byteorder == 'big':
             snd_data.byteswap()
         r.extend(snd_data)
         silent = is_silent(snd_data)
-        if silent and snd_started:
-            num_silent += 1
-        elif not silent and not snd_started:
-            snd_started = True
 
-        if noTalking ==100 or (snd_started and num_silent > SILENCE):
+        if silent and snd_started:
+            print(f'{SILENCE - num_silent}_', end="")
+            num_silent += 1
+        elif not silent:
+            if not snd_started:
+                snd_started = True
+            else:
+                print("-", end="")
+
+        if noTalking ==100 or (snd_started and num_silent >= SILENCE):
             break
 
 
     if noTalking ==100:
         print("Record canceled.")
         return False
-    print("Record finished")
+    print(f"Record finished.")
     sample_width = p.get_sample_size(FORMAT)
     stream.stop_stream()
     stream.close()
