@@ -59,12 +59,13 @@ If you would like to work with us let us know @ js@neurolex.co.
 
 Fingerprint audio models in a streaming folder. 
 '''
+import sys
 
 import librosa, pickle, getpass, time, uuid
 from pydub import AudioSegment
-import speech_recognition as sr  
-import os, nltk, random, json 
-from nltk import word_tokenize 
+import speech_recognition as sr
+import os, nltk, random, json
+from nltk import word_tokenize
 from nltk.classify import apply_features, SklearnClassifier, maxent
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB
 from sklearn.svm import SVC
@@ -84,21 +85,21 @@ from sklearn import preprocessing
 from sklearn import svm
 from sklearn import metrics
 from textblob import TextBlob
-import numpy as np 
+import numpy as np
 
 cur_dir=os.getcwd()+'/load_dir'
 model_dir=os.getcwd()+'/models'
 load_dir=os.getcwd()+'/load_dir'
-    
+
 def featurize2(wavfile):
-    #initialize features 
+    #initialize features
     hop_length = 512
     n_fft=2048
-    #load file 
+    #load file
     y, sr = librosa.load(wavfile)
-    #extract mfcc coefficients 
+    #extract mfcc coefficients
     mfcc = librosa.feature.mfcc(y=y, sr=sr, hop_length=hop_length, n_mfcc=13)
-    mfcc_delta = librosa.feature.delta(mfcc) 
+    mfcc_delta = librosa.feature.delta(mfcc)
     #extract mean, standard deviation, min, and max value in mfcc frame, do this across all mfccs
     mfcc_features=np.array([np.mean(mfcc[0]),np.std(mfcc[0]),np.amin(mfcc[0]),np.amax(mfcc[0]),
                             np.mean(mfcc[1]),np.std(mfcc[1]),np.amin(mfcc[1]),np.amax(mfcc[1]),
@@ -126,7 +127,7 @@ def featurize2(wavfile):
                             np.mean(mfcc_delta[10]),np.std(mfcc_delta[10]),np.amin(mfcc_delta[10]),np.amax(mfcc_delta[10]),
                             np.mean(mfcc_delta[11]),np.std(mfcc_delta[11]),np.amin(mfcc_delta[11]),np.amax(mfcc_delta[11]),
                             np.mean(mfcc_delta[12]),np.std(mfcc_delta[12]),np.amin(mfcc_delta[12]),np.amax(mfcc_delta[12])])
-    
+
     return mfcc_features
 
 def exportfile(newAudio,time1,time2,filename,i):
@@ -142,17 +143,17 @@ def exportfile(newAudio,time1,time2,filename,i):
         print('making %s'%(filename2))
         newAudio2.export(filename2, format="wav")
 
-    return filename2 
+    return filename2
 
 def audio_time_features(filename):
-    #recommend >0.50 seconds for timesplit 
+    #recommend >0.50 seconds for timesplit
     timesplit=0.50
     hop_length = 512
     n_fft=2048
-    
+
     y, sr = librosa.load(filename)
-    duration=float(librosa.core.get_duration(y))
-    
+    duration=float(librosa.core.get_duration(y=y))
+
     #Now splice an audio signal into individual elements of 100 ms and extract
     #all these features per 100 ms
     segnum=round(duration/timesplit)
@@ -167,7 +168,7 @@ def audio_time_features(filename):
 
     newAudio = AudioSegment.from_wav(filename)
     filelist=list()
-    
+
     for i in range(len(timesegment)-1):
         filename=exportfile(newAudio,timesegment[i],timesegment[i+1],filename,i)
         filelist.append(filename)
@@ -198,12 +199,12 @@ def audio_time_features(filename):
                                0,0,0,0,
                                0,0,0,0,
                                0,0,0,0])
-    
+
     #save 100 ms segments in current folder (delete them after)
     for j in range(len(filelist)):
         try:
             features=featurize2(filelist[i])
-            featureslist=featureslist+features 
+            featureslist=featureslist+features
             os.remove(filelist[j])
         except:
             print('error splicing')
@@ -211,17 +212,20 @@ def audio_time_features(filename):
 
     #now scale the featureslist array by the length to get mean in each category
     featureslist=featureslist/segnum
-    
+
     return featureslist
 
 def featurize(wavfile):
     features=np.append(featurize2(wavfile),audio_time_features(wavfile))
-    return features 
+    return features
 
 def convert(file):
-    
+    print("//////////////////////////////")
+    # print(file[-4:])
     if file[-4:] != '.wav':
         filename=file[0:-4]+'.wav'
+        print(filename)
+        print(file)
         os.system('ffmpeg -i %s %s'%(file,filename))
         os.remove(file)
     elif file[-4:] == '.wav':
@@ -245,7 +249,7 @@ try:
 except:
     os.mkdir(load_dir)
     os.chdir(load_dir)
-    
+
 listdir=os.listdir()
 print(os.getcwd())
 for i in range(len(listdir)):
@@ -253,6 +257,8 @@ for i in range(len(listdir)):
         if listdir[i][-5:] not in ['Store','.json']:
             if listdir[i][-4:] != '.wav':
                 if listdir[i][-5:] != '.json':
+                    print(listdir[i])
+                    os.chmod(listdir[i], 0o644)
                     filename=convert(listdir[i])
             else:
                 filename=listdir[i]
@@ -260,7 +266,7 @@ for i in range(len(listdir)):
             print(filename)
 
             if filename[0:-4]+'.json' not in listdir:
-                
+
                 features=featurize(filename)
                 features=features.reshape(1,-1)
 
@@ -270,7 +276,7 @@ for i in range(len(listdir)):
                 model_acc=list()
                 deviations=list()
                 modeltypes=list()
-                
+
                 for j in range(len(model_list)):
                     modelname=model_list[j]
                     i1=modelname.find('_')
@@ -282,7 +288,7 @@ for i in range(len(listdir)):
                     loadmodel=open(modelname, 'rb')
                     model = pickle.load(loadmodel)
                     loadmodel.close()
-                    
+                    print(features)
                     output=str(model.predict(features)[0])
                     print(output)
                     classname=output
@@ -311,8 +317,11 @@ for i in range(len(listdir)):
                     }
                 json.dump(data,jsonfile)
                 jsonfile.close()
-                
+
             count=count+1
-    except:
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
         errorcount=errorcount+1
         count=count+1 

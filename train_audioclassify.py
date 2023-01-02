@@ -739,15 +739,28 @@ os.chdir(cur_dir)
 # load data - can do this through loading .txt or .json files
 # json file must have 'message' field
 data = json.loads(open(jsonfilename).read())
+data616 = json.loads(open("males616_females616_audio.json").read())
 
 classes = list(data)
 features = list()
 labels = list()
+
 for i in range(len(classes)):
     for j in range(len(data[classes[i]])):
         feature = data[classes[i]][j]
         features.append(feature)
         labels.append(classes[i])
+
+# 616 (x-vector)
+# classes616 = list(data616)
+# features616 = list()
+# labels616 = list()
+#
+# for i in range(len(classes616)):
+#     for j in range(len(data616[classes616[i]])):
+#         feature = data616[classes616[i]][j]
+#         features616.append(feature)
+#         labels616.append(classes616[i])
 
 train_set, test_set, train_labels, test_labels = train_test_split(features,
                                                                   labels,
