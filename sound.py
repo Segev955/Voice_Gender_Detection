@@ -14,7 +14,6 @@ from myPCA import myPCA
 
 
 def featurize(wavfile):
-    print("/////////////")
     print(wavfile)
     # initialize features
     hop_length = 512
@@ -81,8 +80,8 @@ def add_512_features():
     random.shuffle(male_files)
     random.shuffle(female_files)
     min_amount = 9999
-    boys = []
-    girls = []
+    males = []
+    females = []
     count = 0
     f = []
     for i in range(616):
@@ -96,25 +95,22 @@ def add_512_features():
             embeddings = classifier.encode_batch(signal)
             embeddings = embeddings.detach().cpu().numpy()
             embedding = embeddings[0][0]
-            boys.append(features.tolist() + embedding.tolist())
+            males.append(features.tolist() + embedding.tolist())
             sound = AudioSegment.from_wav(f"{MALES_PATH}/{file}")
             sound.export(f"{MALES_OUT_PATH}/{file}", format='wav')
             count += 1
             print(count)
 
     # pca algo
-    data = pd.DataFrame(boys, columns=f)
+    data = pd.DataFrame(males, columns=f)
     malesppca = myPCA(data, 616)
     df = malesppca.normalize_data(f)
 
     x, y = malesppca.decide_args(0.98)
     fnum = len(x)
-    print("....................................................")
-    print(f"x: {x} y: {y} len: {fnum}")
     normalmales = []
     for i in df:
         normalmales.append(i[:fnum].tolist())
-    print(len(normalmales[0]))
 
     count = 0
     for file in female_files:
@@ -126,25 +122,23 @@ def add_512_features():
             embeddings = classifier.encode_batch(signal)
             embeddings = embeddings.detach().cpu().numpy()
             embedding = embeddings[0][0]
-            girls.append(features.tolist() + embedding.tolist())
+            females.append(features.tolist() + embedding.tolist())
             sound = AudioSegment.from_wav(f"{FEMALES_PATH}/{file}")
             sound.export(f"{FEMALES_OUT_PATH}/{file}", format='wav')
             count += 1
             print(count)
 
     # pca algo
-    data = pd.DataFrame(girls, columns=f)
+    data = pd.DataFrame(females, columns=f)
     femalesppca = myPCA(data, 616)
     df = femalesppca.normalize_data(f)
 
     x, y = femalesppca.decide_args(0.98)
     fnum = len(x)
-    print("....................................................")
-    print(f"x: {x} y: {y} len: {fnum}")
     normalfemales = []
     for i in df:
         normalfemales.append(i[:fnum].tolist())
-    print(normalfemales)
+    # print(normalfemales)
 
     print("m: ", len(normalmales))
     print("f: ", len(normalfemales))
