@@ -14,6 +14,7 @@ from myPCA import myPCA
 
 
 def featurize(wavfile):
+    print("/////////////")
     print(wavfile)
     # initialize features
     hop_length = 512
@@ -80,8 +81,8 @@ def add_512_features():
     random.shuffle(male_files)
     random.shuffle(female_files)
     min_amount = 9999
-    males = []
-    females = []
+    boys = []
+    girls = []
     count = 0
     f = []
     for i in range(616):
@@ -95,22 +96,13 @@ def add_512_features():
             embeddings = classifier.encode_batch(signal)
             embeddings = embeddings.detach().cpu().numpy()
             embedding = embeddings[0][0]
-            males.append(features.tolist() + embedding.tolist())
+            boys.append(features.tolist() + embedding.tolist())
             sound = AudioSegment.from_wav(f"{MALES_PATH}/{file}")
             sound.export(f"{MALES_OUT_PATH}/{file}", format='wav')
             count += 1
             print(count)
 
-    # pca algo
-    data = pd.DataFrame(males, columns=f)
-    malesppca = myPCA(data, 616)
-    df = malesppca.normalize_data(f)
 
-    x, y = malesppca.decide_args(0.98)
-    fnum = len(x)
-    normalmales = []
-    for i in df:
-        normalmales.append(i[:fnum].tolist())
 
     count = 0
     for file in female_files:
@@ -122,29 +114,14 @@ def add_512_features():
             embeddings = classifier.encode_batch(signal)
             embeddings = embeddings.detach().cpu().numpy()
             embedding = embeddings[0][0]
-            females.append(features.tolist() + embedding.tolist())
+            girls.append(features.tolist() + embedding.tolist())
             sound = AudioSegment.from_wav(f"{FEMALES_PATH}/{file}")
             sound.export(f"{FEMALES_OUT_PATH}/{file}", format='wav')
             count += 1
             print(count)
 
-    # pca algo
-    data = pd.DataFrame(females, columns=f)
-    femalesppca = myPCA(data, 616)
-    df = femalesppca.normalize_data(f)
-
-    x, y = femalesppca.decide_args(0.98)
-    fnum = len(x)
-    normalfemales = []
-    for i in df:
-        normalfemales.append(i[:fnum].tolist())
-    # print(normalfemales)
-
-    print("m: ", len(normalmales))
-    print("f: ", len(normalfemales))
-
-    json_obj = {"males": normalmales, "females": normalfemales}
-    with open('m_f_audio.json', 'w') as outfile:
+    json_obj = {"males": boys, "females": girls}
+    with open('m_f_toPCA.json', 'w') as outfile:
         json.dump(json_obj, outfile)
 
 
