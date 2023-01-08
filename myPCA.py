@@ -23,11 +23,11 @@ class myPCA:
     def normalize_data(self, features):
         # Separating out the features
         x = self.df.loc[:, features].values
+        print(f"The number of features before Normalize is: {len(x[0])}")
         # Standardizing the features
         x = StandardScaler().fit_transform(x)
         principalComponents = self.pca.fit_transform(x)
         self.df = pd.DataFrame(data=principalComponents, columns=[features])
-        print(f"The dataset after Normalize is:\n {len(self.df)}")
         return self.df.loc[:, features].values
 
     def decide_args(self, accuracy):
@@ -40,8 +40,6 @@ class myPCA:
         full_dict = {}
         for i in eigen_pairs:
             full_dict.update({i[0]: i[1]})
-        pprint.pprint(f"The full dict: {full_dict}\n")
-        print(f"Features priority list: {feat_lst}\n")
         x = []
         y = []
         counter = 0
@@ -54,7 +52,6 @@ class myPCA:
             if sum > accuracy:
                 break
         print(f"In order to get {accuracy * 100}%, you need {counter} features\n")
-        self.plot_data(x, y)
         return x, y
 
 if __name__ == '__main__':
@@ -71,36 +68,41 @@ if __name__ == '__main__':
     f = []
     for i in range(616):
         f.append(f"feacher {i + 1}")
+    print("....................................................")
+
     # pca algo for males
+    print("PCA resuts for males:")
     data = pd.DataFrame(males, columns=f)
+    print(f'Number of sampels for males: {len(data)}')
     malesppca = myPCA(data, 616)
     df = malesppca.normalize_data(f)
-
     x, y = malesppca.decide_args(precent)
-    fnum = len(x)
     print("....................................................")
-    print(f"x: {x} y: {y} len: {fnum}")
+    malesppca.plot_data(x,y)
+    fnum = len(x)
+
+    # pca algo for females
+    print("PCA resuts for females:")
+    data = pd.DataFrame(females, columns=f)
+    print(f'Number of sampels for females: {len(data)}')
+    femalesppca = myPCA(data, 616)
+    df = femalesppca.normalize_data(f)
+    x, y = femalesppca.decide_args(precent)
+    print("....................................................")
+    femalesppca.plot_data(x, y)
+
+    if len (x)>fnum:
+        fnum = len(x)
+    print(f"Number of features after Normalize: {fnum}")
+
+   #create lists for the features after running the PCA algorithm.
     normalmales = []
     for i in df:
         normalmales.append(i[:fnum].tolist())
-        print(len(normalmales[0]))
-
-    # pca algo for females
-    data = pd.DataFrame(females, columns=f)
-    femalesppca = myPCA(data, 616)
-    df = femalesppca.normalize_data(f)
-
-    x, y = femalesppca.decide_args(precent)
-
-    fnum = len(x)
-    print("....................................................")
-    print(f"x: {x} y: {y} len: {fnum}")
     normalfemales = []
     for i in df:
         normalfemales.append(i[:fnum].tolist())
-    print(normalfemales)
-    print("m: ", len(normalmales))
-    print("f: ", len(normalfemales))
-    json_obj = {"males": normalmales, "females": normalfemales}
-    with open('m_f_audio.json', 'w') as outfile:
+
+    json_obj = {"features":fnum, "males": normalmales, "females": normalfemales}
+    with open('m_f_fromPCA.json', 'w') as outfile:
         json.dump(json_obj, outfile)
