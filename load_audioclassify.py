@@ -2,62 +2,48 @@
 ================================================ 
 ##            VOICEBOOK REPOSITORY            ##      
 ================================================ 
-
-repository name: voicebook 
-repository version: 1.0 
-repository link: https://github.com/jim-schwoebel/voicebook 
-author: Jim Schwoebel 
-author contact: js@neurolex.co 
-description: a book and repo to get you started programming voice applications in Python - 10 chapters and 200+ scripts. 
-license category: opensource 
-license: Apache 2.0 license 
-organization name: NeuroLex Laboratories, Inc. 
-location: Seattle, WA 
-website: https://neurolex.ai 
-release date: 2018-09-28 
-
-This code (voicebook) is hereby released under a Apache 2.0 license license. 
-
-For more information, check out the license terms below. 
-
-================================================ 
-##               LICENSE TERMS                ##      
-================================================ 
-
-Copyright 2018 NeuroLex Laboratories, Inc. 
-
-Licensed under the Apache License, Version 2.0 (the "License"); 
-you may not use this file except in compliance with the License. 
-You may obtain a copy of the License at 
-
-     http://www.apache.org/licenses/LICENSE-2.0 
-
-Unless required by applicable law or agreed to in writing, software 
-distributed under the License is distributed on an "AS IS" BASIS, 
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-See the License for the specific language governing permissions and 
-limitations under the License. 
-
-================================================ 
-##               SERVICE STATEMENT            ##        
-================================================ 
-
-If you are using the code written for a larger project, we are 
-happy to consult with you and help you with deployment. Our team 
-has >10 world experts in Kafka distributed architectures, microservices 
-built on top of Node.js / Python / Docker, and applying machine learning to 
-model speech and text data. 
-
-We have helped a wide variety of enterprises - small businesses, 
-researchers, enterprises, and/or independent developers. 
-
-If you would like to work with us let us know @ js@neurolex.co. 
-
-================================================ 
-##            LOAD_AUDIOCLASSIFY.PY           ##    
-================================================ 
-
-Fingerprint audio models in a streaming folder. 
+repository name: voicebook
+repository version: 1.0
+repository link: https://github.com/jim-schwoebel/voicebook
+author: Jim Schwoebel
+author contact: js@neurolex.co
+description: a book and repo to get you started programming voice applications in Python - 10 chapters and 200+ scripts.
+license category: opensource
+license: Apache 2.0 license
+organization name: NeuroLex Laboratories, Inc.
+location: Seattle, WA
+website: https://neurolex.ai
+release date: 2018-09-28
+This code (voicebook) is hereby released under a Apache 2.0 license license.
+For more information, check out the license terms below.
+================================================
+##               LICENSE TERMS                ##
+================================================
+Copyright 2018 NeuroLex Laboratories, Inc.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+     http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+================================================
+##               SERVICE STATEMENT            ##
+================================================
+If you are using the code written for a larger project, we are
+happy to consult with you and help you with deployment. Our team
+has >10 world experts in Kafka distributed architectures, microservices
+built on top of Node.js / Python / Docker, and applying machine learning to
+model speech and text data.
+We have helped a wide variety of enterprises - small businesses,
+researchers, enterprises, and/or independent developers.
+If you would like to work with us let us know @ js@neurolex.co.
+================================================
+##            LOAD_AUDIOCLASSIFY.PY           ##
+================================================
+Fingerprint audio models in a streaming folder.
 '''
 import sys
 
@@ -68,10 +54,12 @@ import numpy as np
 
 from dvir_record_funcs import record_to_file
 
-cur_dir = os.getcwd() + '/load_dir'
+dir = 'load_dir'
+cur_dir = os.getcwd() + '/'+dir
 model_dir = os.getcwd() + '/models'
-load_dir = os.getcwd() + '/load_dir'
-final = list()
+load_dir = os.getcwd() + '/'+dir
+final = []
+checked=[]
 
 def featurize2(wavfile):
     # initialize features
@@ -256,93 +244,112 @@ except:
 
 listdir = os.listdir()
 
-ans = input('Do you want to add a record to load_dir? (yes/no)')
+ans = input(f'Do you want to add a record to {dir}? (yes/no)\n')
+if ans =='no':
+    ans = 'n'
 while ans != 'no':
-    filename = input("Input name for the record (letters and numbers only)")
-    while not check_name(filename):
-        filename = input("Invalid name!\nInput name again (letters and numbers only)")
-    while filename + '.wav' in listdir:
-        filename = input("Name exist in load_dir!\nInput name again (letters and numbers only)")
-    filename += '.wav'
+    if ans == 'n':
+        ans = 'no'
+    while ans != 'no':
+        filename = input("Input name for the record (letters and numbers only)\n")
+        while not check_name(filename):
+            filename = input("Invalid name!\nInput name again (letters and numbers only)\n")
+        while filename + '.wav' in listdir:
+            filename = input(f"Name exist in {dir}!\nInput name again (letters and numbers only)\n")
+        filename += '.wav'
 
-    print(f"Recording to {filename}:")
-    # record the file (start talking)
-    if record_to_file(filename):
-        listdir = os.listdir()
-        print(f'{filename} saved.')
-    ans = input('do you want to add more record to load_dir? (yes/no)')
+        print(f"Recording to {filename}")
+        # record the file (start talking)
+        if record_to_file(filename):
+            listdir = os.listdir()
+            print(f'{filename} saved.')
+        ans = input(f'do you want to add more record to {dir}? (yes/no)\n')
 
-listdir = os.listdir()
-for i in range(len(listdir)):
-    try:
-        if listdir[i][-5:] not in ['Store', '.json']:
-            if listdir[i][-4:] != '.wav':
-                if listdir[i][-5:] != '.json':
-                    os.chmod(listdir[i], 0o644)
-                    filename = convert(listdir[i])
-            else:
-                filename = listdir[i]
+    listdir = os.listdir()
+    for i in range(len(listdir)):
+        try:
+            if listdir[i][-5:] not in ['Store', '.json']:
+                if listdir[i][-4:] != '.wav':
+                    if listdir[i][-5:] != '.json':
+                        os.chmod(listdir[i], 0o644)
+                        filename = convert(listdir[i])
+                else:
+                    filename = listdir[i]
 
-            if filename[0:-4] + '.json' not in listdir:
-                print(f"\nResults for {filename}:")
-                features = featurize(filename)
-                features = features.reshape(1, -1)
+                if filename[0:-4] + '.json' not in listdir:
+                    print(f"Results for {filename}:")
+                    features = featurize(filename)
+                    features = features.reshape(1, -1)
+                    os.chdir(model_dir)
+                    class_list = list()
+                    model_acc = list()
+                    deviations = list()
+                    modeltypes = list()
 
-                os.chdir(model_dir)
+                    for j in range(len(model_list)):
+                        modelname = model_list[j]
+                        i1 = modelname.find('_')
+                        name1 = modelname[0:i1]
+                        i2 = modelname[i1:]
+                        i3 = i2.find('_')
+                        name2 = i2[0:i3]
 
-                class_list = list()
-                model_acc = list()
-                deviations = list()
-                modeltypes = list()
+                        loadmodel = open(modelname, 'rb')
+                        model = pickle.load(loadmodel)
+                        loadmodel.close()
+                        output = str(model.predict(features)[0])
+                        print(f'Gender detect: {output}\n')
+                        final.append(f'{filename}: {output}')
+                        classname = output
+                        class_list.append(classname)
 
-                for j in range(len(model_list)):
-                    modelname = model_list[j]
-                    i1 = modelname.find('_')
-                    name1 = modelname[0:i1]
-                    i2 = modelname[i1:]
-                    i3 = i2.find('_')
-                    name2 = i2[0:i3]
+                        g = json.load(open(modelname[0:-7] + '.json'))
+                        model_acc.append(g['accuracy'])
+                        deviations.append(g['deviation'])
+                        modeltypes.append(g['modeltype'])
 
-                    loadmodel = open(modelname, 'rb')
-                    model = pickle.load(loadmodel)
-                    loadmodel.close()
-                    output = str(model.predict(features)[0])
-                    print(f'Gender detect: {output}')
-                    final.append(output)
-                    classname = output
-                    class_list.append(classname)
+                    os.chdir(load_dir)
 
-                    g = json.load(open(modelname[0:-7] + '.json'))
-                    model_acc.append(g['accuracy'])
-                    deviations.append(g['deviation'])
-                    modeltypes.append(g['modeltype'])
-
-                os.chdir(load_dir)
-
-                jsonfilename = filename[0:-4] + '.json'
-                jsonfile = open(jsonfilename, 'w')
-                data = {
-                    'filename': filename,
-                    'filetype': 'audio file',
-                    'class': class_list,
-                    'model': model_list,
-                    'model accuracies': model_acc,
-                    'model deviations': deviations,
-                    'model types': modeltypes,
-                    'features': features.tolist(),
-                    'count': count,
-                    'errorcount': errorcount,
-                }
-                json.dump(data, jsonfile)
-                jsonfile.close()
-            else:
-                print(f"{filename} has already check.")
+                    jsonfilename = filename[0:-4] + '.json'
+                    jsonfile = open(jsonfilename, 'w')
+                    data = {
+                        'filename': filename,
+                        'filetype': 'audio file',
+                        'class': class_list,
+                        'model': model_list,
+                        'model accuracies': model_acc,
+                        'model deviations': deviations,
+                        'model types': modeltypes,
+                        'features': features.tolist(),
+                        'count': count,
+                        'errorcount': errorcount,
+                    }
+                    json.dump(data, jsonfile)
+                    jsonfile.close()
+                else:
+                   checked.append(filename)
+                count = count + 1
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
+            errorcount = errorcount + 1
             count = count + 1
-    except Exception as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(exc_type, fname, exc_tb.tb_lineno)
-        errorcount = errorcount + 1
-        count = count + 1
-print("Gender detect list:")
-print(final)
+    if len(listdir) ==0:
+        print(f'{dir} directory is empty.')
+    else:
+        if len(final) == 0:
+            print('All the files have already checked.')
+        elif len(checked)==1:
+            print(f'{checked[0]} has already check.')
+        elif len(checked)>0:
+            for i in range(len(checked)-1):
+                print(f"{checked[i]}, ",end="")
+            print(f'{checked[-1]} have already checked.')
+        else:
+            print("\nGender detect results:")
+            for result in final:
+                print(result)
+    final=[]
+    checked=[]
+    ans = input(f'do you want to record to {dir} again? (yes/no)\n')

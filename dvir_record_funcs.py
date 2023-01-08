@@ -94,7 +94,7 @@ def record():
         else:
             isStarted += 1
             if isStarted == 1:
-                print("Record start", end="")
+                print("Record start:", end="")
 
         # little endian, signed short
         snd_data = array('h', stream.read(CHUNK_SIZE))
@@ -119,7 +119,7 @@ def record():
     if noTalking ==100:
         print("Record canceled.")
         return False
-    print(f"Record finished.")
+    print(f":Record finished.")
     sample_width = p.get_sample_size(FORMAT)
     stream.stop_stream()
     stream.close()
